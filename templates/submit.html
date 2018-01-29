@@ -1,0 +1,24 @@
+{% from "_formhelpers.html" import render_field %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form method="POST" action="/submit">
+ {{ form.csrf_token }}
+{{ render_field(form.name_of_the_file) }}
+{{ render_field(form.first_name) }}
+{{ render_field(form.last_name) }}
+{{ render_field(form.email) }}
+{{ render_field(form.number) }}
+{{ render_field(form.pesel) }}
+{{ render_field(form.date) }}
+ <input type="submit" value="Submit"><br>
+</form>
+<button type="button" onclick="window.location.href='{{ url_for( 'homepage')}}';">Homepage</button>
+<button type="button" onclick="window.location.href='{{ url_for( 'submit', form = MyForm)}}';">Generate new PDF</button>
+<button type="button" onclick="window.location.href='{{ url_for( 'list')}}';">Download previous PDF</button>
+</body>
+</html>

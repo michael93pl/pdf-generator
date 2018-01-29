@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Homepage</title>
+</head>
+<body>
+<button type="button" onclick="window.location.href='{{ url_for( 'submit', form = MyForm)}}';">Generate new PDF</button>
+<button type="button" onclick="window.location.href='{{ url_for( 'list')}}';">Download previous PDF</button>
+</body>
+</html>
