@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +6,21 @@
     <title>Title</title>
 </head>
 <body>
-<h2>Here you can download all previously generated PDF files</h2>
+<h1>Here you can download all previously generated PDF files</h1>
+
+{% for p in list %}
+<li><b>Name:</b>{{p.name}}
+{% endfor %}
+    <br>
+<h2>Choose which file you want to download</h2>
+    <form method="POST" action="/download">
+<select name="item" id="item">
+{% for p in list %}
+<option value="{{ p.name }}"}>{{ p.name }}</option>
+{% endfor %}
+</select>
+    <input type="submit" onclick="window.location.href='{{ url_for( 'download')}}';" value="Download"><br>
+    </form>
+<br><br><button type="button" onclick="window.location.href='{{ url_for( 'homepage')}}';">Homepage</button>
 </body>
 </html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+You just uploaded the file to database!<br>
+
+
+<button type="button" onclick="window.location.href='{{ url_for( 'homepage')}}';">Homepage</button>
+<button type="button" onclick="window.location.href='{{ url_for( 'list')}}';">Download previously uploaded PDF</button>
+<button type="button" onclick="window.location.href='{{ url_for( 'choose_file')}}';">Upload new pdf</button>
+
+</body>
+</html>

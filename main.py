@@ -1,8 +1,9 @@
-from flask import Flask, render_template, url_for, request, make_response, redirect, send_from_directory
+from flask import Flask, render_template, url_for, request, make_response, send_file
 from wtforms import StringField, DecimalField, validators, SubmitField, ValidationError, DateField
 from wtforms.validators import InputRequired
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
+from io import BytesIO
 import pdfkit
 import db_pass
 
@@ -18,7 +19,6 @@ class FileContent(db.Model):
 
 db.create_all()
 db.session.commit()
-
 
 app.config.update(dict(
     SECRET_KEY="awesome key"
@@ -40,6 +40,7 @@ def submit():
     if form.validate_on_submit():
         new_pdf = (request.form['first_name'], request.form['last_name'], request.form['email'],
                    request.form['number'], request.form['pesel'], request.form['date'])
+
         rendered = render_template('pdf_template.html', form=form, new_pdf=new_pdf)
 
         pdf =pdfkit.from_string(rendered, False)
@@ -47,6 +48,7 @@ def submit():
         response = make_response(pdf)
         response.headers['Content-Type'] = 'aplication/pdf'
         response.headers['Content-Disposition'] = "attachment; filename=" + request.form['name_of_the_file'] + ".pdf"
+
         return response
 
     return render_template('submit.html', form=form)
@@ -55,25 +57,33 @@ def submit():
 def homepage():
     return render_template('homepage.html')
 
-@app.route('/upload', methods=['POST'])
+#upload file module
+@app.route('/choose-file', methods=['GET', 'POST'])
+def choose_file():
+    return render_template('choose_file.html')
+
+#saves the file inside the db
+@app.route('/upload', methods=['GET', 'POST'])
 def upload():
     file = request.files['inputFile']
-
-    newFile = FileContent(name=request.form['name_of_the_file'], data=file.read())
+    newFile = FileContent(name=file.filename, data=file.read())
     db.session.add(newFile)
     db.session.commit()
 
-    return "that worked ! "
-
+    return render_template('uploaded.html')
 
 # display pdf module with download option
 
+
 @app.route('/list', methods=['GET', 'POST'])
 def list():
-    return render_template('list.html')
+    list = db.session.query(FileContent)
+    return render_template('list.html', list=list)
 
-
-
+@app.route('/download', methods=['GET', 'POST'])
+def download():
+    file_data = db.session.query(FileContent).filter(FileContent.name == request.form['item']).first()
+    return send_file(BytesIO(file_data.data), attachment_filename=request.form['item'], as_attachment=True)
 
 if __name__ == "__main__":
     app.run(debug=True)
