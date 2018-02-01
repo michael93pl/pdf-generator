@@ -13,6 +13,7 @@
 {% endfor %}
     <br>
 <h2>Choose which file you want to download</h2>
+
     <form method="POST" action="/download">
 <select name="item" id="item">
 {% for p in list %}
@@ -21,6 +22,8 @@
 </select>
     <input type="submit" onclick="window.location.href='{{ url_for( 'download')}}';" value="Download"><br>
     </form>
+        <button type="button" onclick="window.location.href='{{ url_for( 'choose_file')}}';">Upload new pdf</button><br>
 <br><br><button type="button" onclick="window.location.href='{{ url_for( 'homepage')}}';">Homepage</button>
+
 </body>
 </html>

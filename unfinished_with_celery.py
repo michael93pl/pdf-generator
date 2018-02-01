@@ -3,14 +3,18 @@ from wtforms import StringField, DecimalField, validators, SubmitField, Validati
 from wtforms.validators import InputRequired
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
+from flask_celery import make_celery
 from io import BytesIO
 import pdfkit
 import db_pass
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:' + db_pass.mysql_pass + '@localhost/generator'
+app.config.update(
+    CELERY_BROKER_URL='amqp://localhost//',
+    PRESERVE_CONTEXT_ON_EXCEPTION=False)
 
-
+celery = make_celery(app)
 db = SQLAlchemy(app)
 
 class FileContent(db.Model):
@@ -39,24 +43,30 @@ class MyForm(FlaskForm):
 def homepage():
     return render_template('homepage.html')
 
+@celery.task(name='main.create_pdf.generate')
+def generate(form):
+    with app.app_context().push():
+        form = MyForm()
+        new_pdf = (request.form['first_name'], request.form['last_name'], request.form['email'],
+               request.form['number'], request.form['pesel'], request.form['date'])
+
+        rendered = render_template('pdf_template.html', form=MyForm, new_pdf=new_pdf)
+        pdf = pdfkit.from_string(rendered, False)
+
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = "attachment; filename=" + request.form['name_of_the_file'] + ".pdf"
 
 @app.route('/submit', methods=['GET', 'POST'])
 def submit():
-    form = MyForm()
-    if form.validate_on_submit():
-        new_pdf = (request.form['first_name'], request.form['last_name'], request.form['email'],
-                   request.form['number'], request.form['pesel'], request.form['date'])
+    if request.method == 'POST':
+        form = MyForm(request.form)
 
-        rendered = render_template('pdf_template.html', form=form, new_pdf=new_pdf)
-
-        pdf =pdfkit.from_string(rendered, False)
-
-        response = make_response(pdf)
-        response.headers['Content-Type'] = 'aplication/pdf'
-        response.headers['Content-Disposition'] = "attachment; filename=" + request.form['name_of_the_file'] + ".pdf"
-
-        return response
-
+        if form.validate_on_submit():
+            generate.delay(request.form)
+            return "it worked ! "
+    else:
+        form = MyForm()
     return render_template('submit.html', form=form)
 
 
